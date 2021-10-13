@@ -1,0 +1,5 @@
+flask
+flask-cors
+seeed-python-dht
+seeed-python-Ds18b20
+seeed-python-si114x
