@@ -19,7 +19,7 @@
  .ms-welcome__header {
     padding: 20px;
     padding-bottom: 30px;
-    padding-top: 100px;
+    padding-top: 30px;
     display: -webkit-flex;
     display: flex;
     -webkit-flex-direction: column;

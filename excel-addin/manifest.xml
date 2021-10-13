@@ -4,13 +4,13 @@
   <Version>1.0.0.0</Version>
   <ProviderName>Contoso</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="test1"/>
-  <Description DefaultValue="Write your own Excel functions in TypeScript."/>
+  <DisplayName DefaultValue="FarmBeats"/>
+  <Description DefaultValue="Control your FarmBeats device."/>
   <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-64.png"/>
-  <SupportUrl DefaultValue="https://www.contoso.com/help"/>
+  <SupportUrl DefaultValue="https://github.com/jimbobbennett/farmbeats-vnext-experimental"/>
   <AppDomains>
-    <AppDomain>https://www.contoso.com</AppDomain>
+    <AppDomain>https://www.jimbobbennett.io</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Workbook"/>
@@ -94,13 +94,13 @@
         <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="Functions.Namespace" DefaultValue="CONTOSO"/>
-        <bt:String id="GetStarted.Title" DefaultValue="Get started with your sample add-in!"/>
-        <bt:String id="CommandsGroup.Label" DefaultValue="Commands Group"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="Show Taskpane"/>
+        <bt:String id="Functions.Namespace" DefaultValue="FARMBEATS"/>
+        <bt:String id="GetStarted.Title" DefaultValue="Control your FarmBeats device!"/>
+        <bt:String id="CommandsGroup.Label" DefaultValue="FarmBeats"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="FarmBeats Controls"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="GetStarted.Description" DefaultValue="Your sample add-in loaded succesfully. Go to the HOME tab and click the 'Show Taskpane' button to get started."/>
+        <bt:String id="GetStarted.Description" DefaultValue="Your FarmBeats add-in has loaded successfully. Use this to control your FarmBeats device."/>
         <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Click to Show a Taskpane"/>
       </bt:LongStrings>
     </Resources>
