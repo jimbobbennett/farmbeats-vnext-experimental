@@ -23,9 +23,38 @@ temp_sensor = TemperatureAndHumiditySensor(16, 5)
 
 sensor_db = SensorDB('farmbeats.db')
 
-SENSOR_POLL_TIME = 60
-poll_timer = threading.Thread()
-dataLock = threading.Lock()
+DB_POLL_TIME = 60
+db_poll_timer = threading.Thread()
+db_dataLock = threading.Lock()
+
+CACHE_POLL_TIME = 2
+cache_poll_timer = threading.Thread()
+cache_dataLock = threading.Lock()
+
+@app.route('/', methods=['GET'])
+def home():
+    return "Hello"
+
+@app.route('/all', methods=['GET'])
+def get_all():
+    return {
+        'button1': dual_button.button1,
+        'button2': dual_button.button2,
+        'soil_moisture': soil_moisture_sensor.moisture,
+        'relay': relay.state,
+        'temperature': temp_sensor.temperature,
+        'soil_temperature': temp_sensor.soil_temperature,
+        'humidity': temp_sensor.humidity,
+        'visible': sunlight_sensor.visible,
+        'ultra_violet': sunlight_sensor.ultra_violet,
+        'infra_red': sunlight_sensor.infra_red,
+    }
+
+@app.route('/history', methods=['GET'])
+def get_all_history():
+    with db_dataLock:
+        from_date = request.args.get('from_date', 0)
+        return json.dumps(sensor_db.get_history(from_date))
 
 @app.route('/button', methods=['GET'])
 def button_get():
@@ -59,23 +88,13 @@ def soil_moisture_get():
         'value': soil_moisture_sensor.moisture
     }
 
-@app.route('/history/soil-moisture', methods=['GET'])
-def soil_moisture_history_get():
-    from_date = request.args.get('from_date', 0)
-    return json.dumps(sensor_db.get_soil_moisture_history(from_date))
-
 @app.route('/sunlight', methods=['GET'])
 def sunlight_get():
     return {
         'visible': sunlight_sensor.visible,
         'IR': sunlight_sensor.infra_red,
-        'UV': sunlight_sensor.ultra_voilet
+        'UV': sunlight_sensor.ultra_violet
     }
-
-@app.route('/history/sunlight', methods=['GET'])
-def sunlight_history_get():
-    from_date = request.args.get('from_date', 0)
-    return json.dumps(sensor_db.get_sunlight_history(from_date))
 
 @app.route('/temperature-humidity', methods=['GET'])
 def temperature_humidity_get():
@@ -84,11 +103,6 @@ def temperature_humidity_get():
         'soil_temperature': temp_sensor.soil_temperature,
         'humidity': temp_sensor.humidity
     }
-
-@app.route('/history/temperature-humidity', methods=['GET'])
-def temperature_humidity_history_get():
-    from_date = request.args.get('from_date', 0)
-    return json.dumps(sensor_db.get_temperature_humidity_history(from_date))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -99,29 +113,57 @@ def main():
     print(f'FarmBeats server running on port {args.port}')
     
     def interrupt():
-        global poll_timer
-        poll_timer.cancel()
-
-    def handle_poll_timer():
-        global poll_timer
-        with dataLock:
-            sensor_db.save_values(soil_moisture_sensor, temp_sensor, sunlight_sensor)
-
-        poll_timer = threading.Timer(SENSOR_POLL_TIME, handle_poll_timer, ())
-        poll_timer.start()   
-
-    def start_poll_timer():
-        global poll_timer
-        with dataLock:
-            sensor_db.save_values(soil_moisture_sensor, temp_sensor, sunlight_sensor)
+        global db_poll_timer
+        global cache_poll_timer
         
-        poll_timer = threading.Timer(SENSOR_POLL_TIME, handle_poll_timer, ())
-        poll_timer.start()
+        db_poll_timer.cancel()
+        cache_poll_timer.cancel()
 
-    start_poll_timer()
+    def save_values():
+        with db_dataLock:
+            sensor_db.save_values(soil_moisture_sensor, temp_sensor, sunlight_sensor, relay, dual_button)
+
+    def handle_db_poll_timer():
+        global db_poll_timer
+        save_values()
+
+        db_poll_timer = threading.Timer(DB_POLL_TIME, handle_db_poll_timer, ())
+        db_poll_timer.start()   
+
+    def start_db_poll_timer():
+        global db_poll_timer
+        save_values()        
+        
+        db_poll_timer = threading.Timer(DB_POLL_TIME, handle_db_poll_timer, ())
+        db_poll_timer.start()
+
+    def capture_values():
+        with cache_dataLock:
+            dual_button.capture_values()
+            relay.capture_values()
+            soil_moisture_sensor.capture_values()
+            sunlight_sensor.capture_values()
+            temp_sensor.capture_values()
+
+    def handle_cache_poll_timer():
+        global cache_poll_timer
+        capture_values()
+
+        cache_poll_timer = threading.Timer(CACHE_POLL_TIME, handle_cache_poll_timer, ())
+        cache_poll_timer.start()   
+
+    def start_cache_poll_timer():
+        global cache_poll_timer
+        capture_values()
+        
+        cache_poll_timer = threading.Timer(CACHE_POLL_TIME, handle_cache_poll_timer, ())
+        cache_poll_timer.start()
+
+    start_cache_poll_timer()
+    start_db_poll_timer()
     atexit.register(interrupt)
 
-    app.run(port=args.port, host='0.0.0.0', ssl_context='adhoc')
+    app.run(port=args.port, host='0.0.0.0', ssl_context=('cert.pem', 'key.pem'))
 
 if __name__ == '__main__':
     main()

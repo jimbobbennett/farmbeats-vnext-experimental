@@ -5,6 +5,8 @@ import time
 from soilmoisture import SoilMoistureSensor
 from sunlight import SunLightSensor
 from temperaturehumidity import TemperatureAndHumiditySensor
+from relay import Relay
+from button import DualButton
 
 def row_to_dict(cursor: sqlite3.Cursor, row: sqlite3.Row) -> dict:
     data = {}
@@ -18,13 +20,23 @@ class SensorDB:
 
         with sqlite3.connect(self.__db_file) as connection:
             table_cursor = connection.cursor()
-            table_cursor.execute('CREATE TABLE IF NOT EXISTS soil_moisture (date INTEGER, moisture INTEGER)')
-            table_cursor.execute('CREATE TABLE IF NOT EXISTS temperature_humidity (date INTEGER, temperature INTEGER, humidity INTEGER, soil_temperature INTEGER)')
-            table_cursor.execute('CREATE TABLE IF NOT EXISTS sunlight (date INTEGER, visible INTEGER, infra_red INTEGER, ultra_voilet REAL)')
+            table_cursor.execute('''CREATE TABLE IF NOT EXISTS sensor_values 
+                                    (date INTEGER PRIMARY KEY, 
+                                     soil_moisture INTEGER,
+                                     temperature INTEGER,
+                                     humidity INTEGER,
+                                     soil_temperature INTEGER,
+                                     visible INTEGER,
+                                     infra_red INTEGER,
+                                     ultra_violet REAL,
+                                     relay_state INTEGER,
+                                     button1_state INTEGER,
+                                     button2_state INTEGER)''')
             connection.commit()
             table_cursor.close()
     
-    def save_values(self, soil_moisture_sensor: SoilMoistureSensor, temperature_humidity_sensor: TemperatureAndHumiditySensor, sunlight_sensor: SunLightSensor):
+    def save_values(self, soil_moisture_sensor: SoilMoistureSensor, temperature_humidity_sensor: TemperatureAndHumiditySensor, sunlight_sensor: SunLightSensor,
+                    relay: Relay, button: DualButton) -> None:
         print('Saving sensor values...', file=sys.stdout)
         utc_time = int(time.time())
 
@@ -36,34 +48,30 @@ class SensorDB:
         
         visible_light = sunlight_sensor.visible
         infra_red = sunlight_sensor.infra_red
-        ultra_voilet = sunlight_sensor.ultra_voilet
+        ultra_violet = sunlight_sensor.ultra_violet
+
+        relay_state = relay.state
+
+        button1_state = button.button1
+        button2_state = button.button2
 
         with sqlite3.connect(self.__db_file) as connection:
             insert_cursor = connection.cursor()
             
-            insert_cursor.execute('INSERT INTO soil_moisture VALUES (?, ?)', (utc_time, soil_moisture))
-            insert_cursor.execute('INSERT INTO temperature_humidity VALUES (?, ?, ?, ?)', (utc_time, temperature, humidity, soil_temperature))
-            insert_cursor.execute('INSERT INTO sunlight VALUES (?, ?, ?, ?)', (utc_time, visible_light, infra_red, ultra_voilet))
+            insert_cursor.execute('''INSERT INTO sensor_values VALUES 
+                                  (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                                  (utc_time, soil_moisture, temperature, humidity, soil_temperature, visible_light, infra_red, ultra_violet, relay_state, button1_state, button2_state))
             
             connection.commit()
             insert_cursor.close()
         
         print('Sensor values saved!', file=sys.stdout)
 
-    def __get_history(self, table: str, from_date: int) -> list:
+    def get_history(self, from_date: int) -> list:
         with sqlite3.connect(self.__db_file) as connection:
             connection.row_factory = row_to_dict
             select_cursor = connection.cursor()
-            select_cursor.execute(f'SELECT * FROM {table} WHERE date > {from_date}')
+            select_cursor.execute(f'SELECT * FROM sensor_values DESC WHERE date > {from_date} ORDER BY date')
             rows = select_cursor.fetchall()
             select_cursor.close()
             return rows
-
-    def get_soil_moisture_history(self, from_date: int) -> list:
-        return self.__get_history('soil_moisture', from_date)
-
-    def get_temperature_humidity_history(self, from_date: int) -> list:
-        return self.__get_history('temperature_humidity', from_date)
-
-    def get_sunlight_history(self, from_date: int) -> list:
-        return self.__get_history('sunlight', from_date)
