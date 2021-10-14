@@ -163,7 +163,7 @@ def main():
     start_db_poll_timer()
     atexit.register(interrupt)
 
-    app.run(port=args.port, host='0.0.0.0', ssl_context=('cert.pem', 'key.pem'))
+    app.run(port=args.port, host='0.0.0.0', ssl_context='adhoc')
 
 if __name__ == '__main__':
     main()
