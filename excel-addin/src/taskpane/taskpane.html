@@ -23,13 +23,24 @@
 </head>
 
 <body class="ms-font-m ms-welcome ms-Fabric">
-    <header class="ms-welcome__header ms-bgColor-neutralLighter">
+    <header class="ms-welcome__header">
         <img width="90" height="90" src="../../assets/logo-filled.png" alt="FarmBeats" title="FarmBeats" />
     </header>
     <section id="sideload-msg" class="ms-welcome__main">
         <h2 class="ms-font-xl">Please sideload your add-in to see app body.</h2>
     </section>
     <main id="app-body" class="ms-welcome__main" style="display: none;">
+        <h2 class="ms-font-xl" id="device-id-title"> FarmBeats device ID </h2>
+        <h2 class="ms-font-xl"> Stream data </h2>
+        <div role="button" id="start_streaming" class="ms-welcome__action ms-Button ms-Button--primary ms-font-xl" style="margin-bottom:20px">
+            <span class="ms-Button-label">Start streaming</span>
+        </div>
+        <div role="button" id="stop_streaming" class="ms-welcome__action ms-Button ms-Button--primary ms-font-xl" style="margin-bottom:20px">
+            <span class="ms-Button-label">Stop streaming</span>
+        </div>
+        <div role="button" id="clear_streaming" class="ms-welcome__action ms-Button ms-Button--primary ms-font-xl">
+            <span class="ms-Button-label">Clear streamed data</span>
+        </div>
         <h2 class="ms-font-xl"> Control your relay </h2>
         <div role="button" id="relay_on" class="ms-welcome__action ms-Button ms-Button--primary ms-font-xl" style="margin-bottom:20px">
             <span class="ms-Button-label">Turn relay on</span>
@@ -38,6 +49,10 @@
             <span class="ms-Button-label">Turn relay off</span>
         </div>
     </main>
+    <footer class="error_footer">
+        <span class="ms-font-xl" id="message-label"></span>
+        <span class="ms-font-xl error_label" id="error-label"></span>
+    </footer>
 </body>
 
 </html>
