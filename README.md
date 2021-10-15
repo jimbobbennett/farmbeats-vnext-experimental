@@ -137,3 +137,7 @@ The Excel add-in has a set of custom functions that can query the sensor data, a
 * The task pane has buttons to start streaming historic data into the `Data In` sheet. This will show the current value and the last 500 captured once a minute. You can change the number of rows and how often the data is captured in the `Configuration` sheet. THe web server captures data every 60 seconds, so you don't need to poll more than this.
 
 * This pane also has buttons to control the relay.
+
+### Publishing the add-in
+
+To use the add-in on a different computer, you need to host it somewhere. You can upload it to Azure storage as a static web app and host from there. Once your code is uploaded, you need to update the `manifest.xml` file to replace all references to `localhost:3000` with the hosted location.
